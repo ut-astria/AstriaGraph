@@ -1,0 +1,7 @@
+{
+    "SPARQL": {
+	"ReadEndPoint"   : "http://localhost:3030/astria/query",
+	"UpdateEndPoint" : "http://localhost:3030/astria/update",
+	"UploadEndPoint" : "http://localhost:3030/astria/data"
+    }
+}

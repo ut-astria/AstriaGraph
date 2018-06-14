@@ -1,0 +1,255 @@
+<html lang = "en">
+<!--
+    Author : Shiva Iyer (shiva.iyer AT utexas DOT edu)
+    
+    Main page for the AstriaGraph RSO visualization tool.
+-->
+
+  <body>
+    <div id = "Loader"></div>
+
+    <div id = "MainDisplay"></div>
+
+    <div id = "InputsDiv">
+      <div style = "float: left; padding: 5px;">
+      <a href = "http://astria.tacc.utexas.edu" target = "_blank">
+	<img src = "images/AstriaLogo.png" title = "Astria"/></a>
+      <p></p>
+      <h1 style = "color: white; font-size: 2.75em;">AstriaGraph</h1>
+      </div>
+
+      <div style = "float: left; padding: 5px;">
+	<fieldset>
+	  <legend>Resident space object search criteria</legend>
+
+	  <input type = "text" id = "SearchBox" placeholder = "Search by name...">
+
+	  <label for = "DataSrcSelect">Data source</label> <br>
+	  <select name = "DataSrcSelect" id = "DataSrcSelect">
+	    <option value = "ALL" selected = "selected">All</option>
+	    <option value = "JSC Vimpel">JSC Vimpel</option>
+	    <option value = "LeoLabs">LeoLabs</option>
+	    <option value = "Planet">Planet</option>
+	    <option value = "USSTRATCOM">USSTRATCOM (Two-line elements)</option>
+	  </select>
+	  <p> </p>
+
+	  <label for = "OriginSelect">Country of origin</label> <br>
+	  <select name = "OriginSelect" id = "OriginSelect"> </select>
+	  <p> </p>
+
+	  <label for = "RegimeSelect">Orbit regime</label> <br>
+	  <select name = "RegimeSelect" id = "RegimeSelect">
+	    <option value = "A" selected = "selected">All</option>
+	    <option value = "L">Low Earth orbit (LEO)</option>
+	    <option value = "M">Medium Earth orbit (MEO)</option>
+	    <option value = "G">Geo-synchronous/stationary orbit (GSO/GEO)</option>
+	    <option value = "H">High Earth orbit (HEO)</option>
+	  </select>
+	</fieldset>
+      </div>
+
+      <div style = "float: left; padding: 5px;">
+	<fieldset>
+	  <legend style = "color: white;">Legend</legend>
+	  <ul>
+	    <li style = "color: DarkOrange;">Active satellite</li>
+	    <li style = "color: cyan;">Inactive satellite</li>
+	    <li style = "color: MediumOrchid;">Rocket body</li>
+	    <li style = "color: gray;">Debris</li>
+	    <li style = "color: DeepPink;">Uncategorized</li>
+	  </ul>
+	</fieldset>
+      </div>
+    </div>
+
+    <div id = "DisclaimerDiv">
+      <h4 style = "color: white">AstriaGraph is visualized in a public-private partnership.
+	As part of this partnership, the partners have agreed to limit commercial uses of this representation 
+	of AstriaGraph by third parties. You can, without permission, copy, modify, distribute, or display 
+	AstriaGraph information for non-commercial uses. For any other permissible uses, please contact 
+	those listed as the &quot;Data Source&quot; of the appropriate information. Please click 
+	<a href = "javascript:;" id = "DataSrcInfo"> here </a> for details about the data sources and visualization.</h4>
+    </div>
+
+    <div id = "DataSrcPopup" class = "modal">
+      <div class = "modal-content">
+	<span class = "close">&times;</span>
+	<h1>Data Sources</h1>
+	<ol>
+	    <li>JSC Vimpel (<a href = "http://spacedata.vimpel.ru" target = "_blank">http://spacedata.vimpel.ru</a>)</li>
+	    <li>LeoLabs (<a href = "https://www.leolabs.space" target = "_blank">https://www.leolabs.space</a>)</li>
+	    <li>Planet (<a href = "https://www.planet.com" target = "_blank">https://www.planet.com</a>)</li>
+	    <li>Union of Concerned Scientists (<a href = "https://www.ucsusa.org/nuclear-weapons/space-weapons/satellite-database" target = "_blank">
+		https://www.ucsusa.org/nuclear-weapons/space-weapons/satellite-database</a>)</li>
+	    <li>USSTRATCOM (<a href = "https://www.space-track.org" target = "_blank">https://www.space-track.org</a>)</li>
+	</ol>
+	<h1>Visualization</h1>
+	Resident space object data obtained from the sources listed above are stored internally as Cartesian 
+	vectors in the J2000 reference frame. Objects and orbits are visualized using the equations of motion of
+	the Kepler two-body problem. In order to reduce computational cost to the browser, perturbations from
+	Earth oblateness, third bodies, atmospheric drag, solar radiation pressure etc., are not taken into
+	account.
+      </div>
+    </div>
+
+    <style>
+      @import url(cesium/Widgets/widgets.css);
+      html, body, #MainDisplay {
+      top: 0; left: 0; width: 100%; height: 100%;
+      margin: 0; padding: 0; overflow: hidden
+      }
+
+      #InputsDiv {
+      position: absolute; top: 5px; left: 5px; width: 60%;
+      }
+
+      #DisclaimerDiv {
+      position: absolute; bottom: 1%; left: 15%; width: 85%;
+      }
+
+      #SearchBox {
+      background-image: url("images/searchicon.png"); background-position: right;
+      background-repeat: no-repeat; width: 100%; font-size: 12pt;
+      padding: 10px 10px 10px 10px; border: 2px solid #ddd; margin-bottom: 12px;
+      }
+
+      #DataSrcSelect {
+      width : 100%; font-size: 12pt; padding: 10px 10px 10px 10px;
+      }
+
+      #OriginSelect {
+      width : 100%; font-size: 12pt; padding: 10px 10px 10px 10px;
+      }
+
+      #RegimeSelect {
+      width : 100%; font-size: 12pt; padding: 10px 10px 10px 10px;
+      }
+
+      legend { color : white; font-size: 12pt; }
+      label { color : white; font-size: 12pt; }
+      .ui-selectmenu-menu .ui-menu { max-height : 30vh; }
+
+      #Loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 8px solid black;
+      border-radius: 50%;
+      border-top: 8px solid white;
+      border-right: 8px solid white;
+      width: 60px;
+      height: 60px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+      }
+
+      @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+      }
+
+      @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+      }
+
+      .animate-bottom {
+      position: relative;
+      -webkit-animation-name: animatebottom;
+      -webkit-animation-duration: 1s;
+      animation-name: animatebottom;
+      animation-duration: 1s
+      }
+
+      @-webkit-keyframes animatebottom {
+      from { bottom:-100px; opacity:0 } 
+      to { bottom:0px; opacity:1 }
+      }
+
+      @keyframes animatebottom { 
+      from{ bottom:-100px; opacity:0 } 
+      to{ bottom:0; opacity:1 }
+      }
+      
+      .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+      }
+
+      .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      }
+
+      .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+      }
+    </style>
+  </body>
+
+  <head>
+    <script async src = "https://www.googletagmanager.com/gtag/js?id=UA-97324668-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+
+      gtag("config", "UA-97324668-2");
+    </script>
+    
+    <meta name = "keywords" content = "Space situational awareness, SSA, Space traffic management, STM,
+				       space debris, space garbage, space junk, orbital debris, orbital garbage,
+				       orbital junk, astrodynamics, orbit determination, celestial mechanics,
+				       orbital mechanics, satellite, rocket, space">
+    <meta name = "author" content = "Shiva Iyer">
+
+    <meta charset = "utf-8">
+
+    <link rel = "stylesheet" href = "jquery-ui.css">
+
+    <script src = "jquery.js"> </script>
+    <script src = "jquery-ui.js"> </script>
+    <script src = "cesium/Cesium.js" charset = "utf-8"></script>
+    <script src = "celemech.js"> </script>
+    <script src = "main.js"> </script>
+
+    <script>
+      document.getElementById("DataSrcInfo").onclick = function()
+      {
+      document.getElementById("DataSrcPopup").style.display = "block"
+      }
+
+      document.getElementsByClassName("close")[0].onclick = function()
+      {
+      document.getElementById("DataSrcPopup").style.display = "none"
+      }
+    </script>
+  </head>
+
+</html>
