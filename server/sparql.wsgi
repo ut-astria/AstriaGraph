@@ -12,8 +12,7 @@ def select(filter):
            "?sub ?pre ?o "
            "BIND(STRAFTER(STR(?sub), \"#track\") as ?s) "
            "BIND(STRAFTER(STR(?pre), \"_\") as ?p) "
-           "FILTER(REGEX(STR(?sub), \"%s\"))} "
-           "ORDER BY ?s ?p" % (filter))
+           "FILTER(REGEX(STR(?sub), \"%s\"))}" % filter)
 
     req = requests.get(ServConf["SPARQL"]["ReadEndPoint"],
                        params = {"query" : qry, "output" : "csv"})
