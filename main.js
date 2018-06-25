@@ -56,7 +56,7 @@ function DisplayObjects(D)
     var dsnsel = $("#DataSrcSelect").val()
     var orgsel = $("#OriginSelect").val()
     var regsel = $("#RegimeSelect").val()
-    var ent, trk, t, X, col, htm, ele, fld, alpha, i, name, names = []
+    var ent, trk, t, X, col, htm, ele, fld, i, name, names = []
     var CRFtoTRF = Cesium.Transforms.computeIcrfToFixedMatrix(SimStart)
 
     CsView.entities.suspendEvents()
@@ -120,12 +120,12 @@ function DisplayObjects(D)
 	    trk["class"] = fld[2]
 	}
 
-	pos.x = trk["x"]*1000
-	pos.y = trk["y"]*1000
-	pos.z = trk["z"]*1000
-	vel.x = trk["xdot"]*1000
-	vel.y = trk["ydot"]*1000
-	vel.z = trk["zdot"]*1000
+	pos.x = trk["x"]
+	pos.y = trk["y"]
+	pos.z = trk["z"]
+	vel.x = trk["xdot"]
+	vel.y = trk["ydot"]
+	vel.z = trk["zdot"]
 
 	Cesium.JulianDate.fromIso8601(trk["epoch"], epjd)
 	t = Cesium.JulianDate.daysDifference(SimStart, epjd)
@@ -135,22 +135,16 @@ function DisplayObjects(D)
 	ele.mean = (ele.mean + ele.mmo*t*86400) % TwoPi
 	trk["elem"] = ele
 
-//	t = Math.abs(t)
-//	if (t <= 1 || trk["originator"] != "USSTRATCOM")
-	    alpha = 1.0
-//	else
-//	    alpha = 0.6 + 0.4*Math.exp(1 - t)
-
 	if (active.indexOf(trk["id"]) == -1)
-	    col = Cesium.Color.CYAN.withAlpha(alpha)
+	    col = Cesium.Color.CYAN
 	else
-	    col = Cesium.Color.DARKORANGE.withAlpha(alpha)
+	    col = Cesium.Color.DARKORANGE
 	if (trk["name"].search("R/B") != -1)
-	    col = Cesium.Color.MEDIUMORCHID.withAlpha(alpha)
+	    col = Cesium.Color.MEDIUMORCHID
 	if (trk["name"].search("DEB") != -1)
-	    col = Cesium.Color.GRAY.withAlpha(alpha)
+	    col = Cesium.Color.GRAY
 	if (trk["id"][0] == "V" && trk["originator"] == "JSC Vimpel")
-	    col = Cesium.Color.DEEPPINK.withAlpha(alpha)
+	    col = Cesium.Color.DEEPPINK
 
 	CsView.entities.add({id : s,
 			     name : trk["name"],
@@ -199,8 +193,6 @@ function DisplayOrbit(obj)
     {
 	CsOrbitEnt[i].polyline.width = 0
 	CsOrbitEnt[i].label.text = ""
-	if (!(typeof CsOrbitEnt[i].ellipsoid === "undefined"))
-	    CsOrbitEnt[i].ellipsoid.radii = new Cesium.Cartesian3(0, 0, 0)
     }
     CsOrbitEnt = []
 
@@ -309,21 +301,7 @@ function DisplayOrbit(obj)
 	ent.polyline = {
 	    positions : Cesium.Cartesian3.fromRadiansArrayHeights(arr),
 	    width : 1,
-	    material : ent.point.color.getValue().withAlpha(1.0)
-	}
-
-	if (ObjData[s]["originator"] == "LeoLabs")
-	{
-	    ent.ellipsoid = {
-		radii : new Cesium.Cartesian3(3000*Math.sqrt(ObjData[s]["cxx"]),
-					      3000*Math.sqrt(ObjData[s]["cyy"]),
-					      3000*Math.sqrt(ObjData[s]["czz"])),
-		fill : false,
-		outline : true,
-		outlineColor : Cesium.Color.YELLOW,
-		slicePartitions : 12,
-		stackPartitions : 18
-	    }
+	    material : ent.point.color.getValue()
 	}
 
 	ent.label = {text : `(${i})`,

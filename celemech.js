@@ -9,8 +9,8 @@ var JulYear = 365.25
 var JulCent = JulYear*100
 
 // WGS-72 constants used for TLEs
-var WGS72_mu = 3.986008E14      // m^3/s^2
-var WGS72_REarth = 6.378135E6  // m
+var WGS72_mu = 3.986004418E14  // m^3/s^2
+var WGS72_REarth = 6378137.0   // m
 
 var TwoPi = (2*Math.PI)
 var RadDeg = (180/Math.PI)
