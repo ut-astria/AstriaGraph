@@ -78,7 +78,6 @@ function DisplayObjects(D)
     for (s in D)
     {
 	trk = D[s]
-
 	if (trk["originator"] == "UCS")
 	    continue
 
@@ -238,7 +237,7 @@ function DisplayOrbit(obj)
 
 		htm = htm +
 		    `<tr><td>Data epoch</td>
-		    <td align = "right">${ObjData[s]["epoch"]}</td></tr>
+		    <td align = "right">${ObjData[s]["epoch"].substring(0, 24)}</td></tr>
 		    <tr><td>Semi-major axis</td>
 		    <td align = "right">${(ele.sma/1000).toFixed(1)} km</td></tr>
 		    <tr><td>Eccentricity</td>
@@ -273,7 +272,7 @@ function DisplayOrbit(obj)
 			<sup>m&sup2;</sup>&frasl;<sub>kg</sub></td></tr>
 			</table> <p></p>`
 		}
-		else
+		else if (ObjData[s]["originator"] != "Astria OD/LeoLabs data")
 		{
 		    htm = htm +
 			`<tr><td>Ballistic coefficient</td>

@@ -27,6 +27,7 @@
 	  <label for = "DataSrcSelect">Data source</label> <br>
 	  <select name = "DataSrcSelect" id = "DataSrcSelect">
 	    <option value = "ALL" selected = "selected">All</option>
+	    <option value = "Astria OD/LeoLabs data">Astria OD/LeoLabs data</option>
 	    <option value = "JSC Vimpel">JSC Vimpel</option>
 	    <option value = "LeoLabs">LeoLabs</option>
 	    <option value = "Planet">Planet</option>
@@ -84,6 +85,13 @@
 		https://www.ucsusa.org/nuclear-weapons/space-weapons/satellite-database</a>)</li>
 	    <li>USSTRATCOM (<a href = "https://www.space-track.org" target = "_blank">https://www.space-track.org</a>)</li>
 	</ol>
+
+	<h1>Orbit Determination</h1>
+	The "Astria OD/LeoLabs Data" source shows the results we get by doing orbit determination on LeoLabs
+	measurements. We use our open-source OD library, which is based on the Orekit astrodynamics framework.
+	The OD source code is available at 
+	<a href = "https://github.com/ut-astria/orbdetpy" target = "_blank">https://github.com/ut-astria/orbdetpy</a>.
+
 	<h1>Visualization</h1>
 	Resident space object data obtained from the sources listed above are stored internally as Cartesian 
 	vectors in the J2000 reference frame. Objects and orbits are visualized using the equations of motion of
