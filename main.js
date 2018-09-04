@@ -201,8 +201,7 @@ function DisplayOrbit(obj)
     {
 	if (ObjData[s]["id"] != trk["id"])
 	    continue
-	if ((dsnsel != "ALL" && dsnsel != ObjData[s]["originator"]) ||
-	    ObjData[s]["originator"] == "UCS")
+	if (dsnsel != "ALL" && dsnsel != ObjData[s]["originator"])
 	    continue
 
 	var sta,arr = []
@@ -235,29 +234,61 @@ function DisplayOrbit(obj)
 			<td align = "right">${ObjData[s]["comment"]}</td></tr>`
 		}
 
-		htm = htm +
-		    `<tr><td>Data epoch</td>
-		    <td align = "right">${ObjData[s]["epoch"].substring(0, 24)}</td></tr>
-		    <tr><td>Semi-major axis</td>
-		    <td align = "right">${(ele.sma/1000).toFixed(1)} km</td></tr>
-		    <tr><td>Eccentricity</td>
-		    <td align = "right">${ele.ecc.toFixed(4)}</td></tr>
-		    <tr><td>Inclination</td>
-		    <td align = "right">${(ele.inc*180/Math.PI).toFixed(4)}&deg;</td></tr>
-		    <tr><td>RA of ascending node</td>
-		    <td align = "right">${(ele.raan*180/Math.PI).toFixed(4)}&deg;</td></tr>
-		    <tr><td>Argument of perigee</td>
-		    <td align = "right">${(ele.argp*180/Math.PI).toFixed(4)}&deg;</td></tr>
-		    <tr><td>Mean motion</td>
-		    <td align = "right">${(ele.mmo*180/Math.PI).toFixed(4)}
-		    <sup>&deg;</sup>&frasl;<sub>s</sub></td></tr>
-		    <tr><td>Orbital speed</td>
-		    <td align = "right">${(Cesium.Cartesian3.magnitude(sta.vel)/1000).toFixed(1)}
-		    <sup>km</sup>&frasl;<sub>s</sub></td></tr>
-		    <tr><td>Orbital period</td>
-		    <td align = "right">${(Math.PI/(ele.mmo*30)).toFixed(1)} min</td></tr>`
+		if (ObjData[s]["originator"] == "UCS")
+		{
+		    htm = htm +
+			`<tr><td>Operator</td>
+			<td align = "right">${ObjData[s]["operator"]}</td></tr>
+			<tr><td>Users</td>
+			<td align = "right">${ObjData[s]["users"]}</td></tr>
+			<tr><td>Purpose</td>
+			<td align = "right">${ObjData[s]["purpose"]}</td></tr>
+			<tr><td>Detailed purpose</td>
+			<td align = "right">${ObjData[s]["detailed_purpose"]}</td></tr>
+		    	<tr><td>Launch mass [kg]</td>
+		    	<td align = "right">${ObjData[s]["launch_mass"]}</td></tr>
+		    	<tr><td>Dry mass [kg]</td>
+		    	<td align = "right">${ObjData[s]["dry_mass"]}</td></tr>
+		    	<tr><td>Power [W]</td>
+		    	<td align = "right">${ObjData[s]["power"]}</td></tr>
+		    	<tr><td>Lifetime [years]</td>
+		    	<td align = "right">${ObjData[s]["lifetime"]}</td></tr>
+			<tr><td>Contractor</td>
+			<td align = "right">${ObjData[s]["contractor"]}</td></tr>
+			<tr><td>Launch site</td>
+			<td align = "right">${ObjData[s]["launch_site"]}</td></tr>
+			<tr><td>Launch vehicle</td>
+			<td align = "right">${ObjData[s]["launch_vehicle"]}</td></tr>
+			<tr><td>Launch date</td>
+			<td align = "right">${ObjData[s]["launch_date"]}</td></tr>`
+		}
+		else
+		{
+			htm = htm +
+			`<tr><td>Data epoch</td>
+		    	<td align = "right">${ObjData[s]["epoch"].substring(0, 24)}</td></tr>
+		    	<tr><td>Semi-major axis</td>
+		    	<td align = "right">${(ele.sma/1000).toFixed(1)} km</td></tr>
+		    	<tr><td>Eccentricity</td>
+		    	<td align = "right">${ele.ecc.toFixed(4)}</td></tr>
+		    	<tr><td>Inclination</td>
+		    	<td align = "right">${(ele.inc*180/Math.PI).toFixed(4)}&deg;</td></tr>
+		    	<tr><td>RA of ascending node</td>
+		    	<td align = "right">${(ele.raan*180/Math.PI).toFixed(4)}&deg;</td></tr>
+		    	<tr><td>Argument of perigee</td>
+		    	<td align = "right">${(ele.argp*180/Math.PI).toFixed(4)}&deg;</td></tr>
+		    	<tr><td>Mean motion</td>
+		    	<td align = "right">${(ele.mmo*180/Math.PI).toFixed(4)}
+		    	<sup>&deg;</sup>&frasl;<sub>s</sub></td></tr>
+		    	<tr><td>Orbital speed</td>
+		    	<td align = "right">${(Cesium.Cartesian3.magnitude(sta.vel)/1000).toFixed(1)}
+		    	<sup>km</sup>&frasl;<sub>s</sub></td></tr>
+		    	<tr><td>Orbital period</td>
+		    	<td align = "right">${(Math.PI/(ele.mmo*30)).toFixed(1)} min</td></tr>`
+		}
 
-		if (ObjData[s]["originator"] == "LeoLabs")
+		if (ObjData[s]["originator"] == "LeoLabs" || 
+            ObjData[s]["originator"] == "Astria OD/LeoLabs data")
 		{
 		    htm = htm +
 			`<tr><td>Drag coefficient</td>
@@ -272,7 +303,7 @@ function DisplayOrbit(obj)
 			<sup>m&sup2;</sup>&frasl;<sub>kg</sub></td></tr>
 			</table> <p></p>`
 		}
-		else if (ObjData[s]["originator"] != "Astria OD/LeoLabs data")
+		else if (ObjData[s]["originator"] != "UCS")
 		{
 		    htm = htm +
 			`<tr><td>Ballistic coefficient</td>
