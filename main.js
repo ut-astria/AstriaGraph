@@ -142,7 +142,8 @@ function DisplayObjects(D)
 	    col = Cesium.Color.MEDIUMORCHID
 	if (trk["name"].search("DEB") != -1)
 	    col = Cesium.Color.GRAY
-	if (trk["id"][0] == "V" && trk["originator"] == "JSC Vimpel")
+	if ((trk["id"][0] == "V" && trk["originator"] == "JSC Vimpel") ||
+	    trk["originator"] == "SeeSat-L")
 	    col = Cesium.Color.DEEPPINK
 
 	CsView.entities.add({id : s,
@@ -225,10 +226,11 @@ function DisplayOrbit(obj)
 		    <tr><td>Country</td>
 		    <td align = "right">${ObjData[s]["origin"]}</td></tr>`
 
-		if (ObjData[s]["originator"] == "USSTRATCOM")
+		if (ObjData[s]["originator"] == "USSTRATCOM" ||
+		    ObjData[s]["originator"] == "SeeSat-L")
 		{
 		    htm = htm +
-			`<tr><td>Catalog ID</td>
+			`<tr><td>Object ID</td>
 			<td align = "right">${ObjData[s]["id"]}</td></tr>
 			<tr><td>Launch date</td>
 			<td align = "right">${ObjData[s]["comment"]}</td></tr>`
@@ -287,8 +289,8 @@ function DisplayOrbit(obj)
 		    	<td align = "right">${(Math.PI/(ele.mmo*30)).toFixed(1)} min</td></tr>`
 		}
 
-		if (ObjData[s]["originator"] == "LeoLabs" || 
-            ObjData[s]["originator"] == "Astria OD/LeoLabs data")
+		if (ObjData[s]["originator"] == "LeoLabs" ||
+		    ObjData[s]["originator"] == "Astria OD/LeoLabs data")
 		{
 		    htm = htm +
 			`<tr><td>Drag coefficient</td>
@@ -303,7 +305,8 @@ function DisplayOrbit(obj)
 			<sup>m&sup2;</sup>&frasl;<sub>kg</sub></td></tr>
 			</table> <p></p>`
 		}
-		else if (ObjData[s]["originator"] != "UCS")
+		else if (ObjData[s]["originator"] != "UCS" &&
+			 ObjData[s]["originator"] != "SeeSat-L")
 		{
 		    htm = htm +
 			`<tr><td>Ballistic coefficient</td>
