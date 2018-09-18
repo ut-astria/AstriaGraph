@@ -7,6 +7,7 @@
 var ClientConf
 
 var ObjData = {}
+var DebrisLoaded = false
 
 var CsOrbitEnt = []
 
@@ -58,8 +59,16 @@ function DisplayObjects(D)
     var regsel = $("#RegimeSelect").val()
     var ent, trk, t, X, col, htm, ele, fld, i, name, names = []
     var CRFtoTRF = Cesium.Transforms.computeIcrfToFixedMatrix(SimStart)
+    var debcb = window.document.getElementById("DebrisToggle")
 
     CsView.entities.suspendEvents()
+
+    for (var i = 0; i < CsOrbitEnt.length; i++)
+    {
+	CsOrbitEnt[i].polyline.width = 0
+	CsOrbitEnt[i].label.text = ""
+    }
+    CsOrbitEnt = []
 
     var active = []
     for (var s in D)
@@ -98,7 +107,9 @@ function DisplayObjects(D)
 
 	    if (!(typeof ent === "undefined"))
 	    {
-		ent.show = true
+		ent.show = (trk["name"].search("R/B") == -1 &&
+		trk["name"].search("DEB") == -1) || debcb.checked
+		ent.description = ""
 		continue
 	    }
 	}
@@ -107,6 +118,7 @@ function DisplayObjects(D)
 	    if (!(typeof ent === "undefined"))
 	    {
 		ent.show = false
+		ent.description = ""
 		continue
 	    }
 	}
@@ -367,7 +379,6 @@ $("#SearchBox").on("autocompleteselect", function (event, ui)
 {
     event.preventDefault()
     this.value = ui.item.label
-
     CsView.selectedEntity = CsView.entities.getById(ui.item.value)
 })
 
@@ -391,6 +402,19 @@ $("#RegimeSelect").selectmenu({width : "100%",
 	DisplayObjects(ObjData)
     }
 })
+
+function OnToggleDebris()
+{
+    window.document.getElementById("Loader").style.display = "inline"
+    var cb = window.document.getElementById("DebrisToggle")
+    if (cb.checked && !DebrisLoaded)
+    {
+	DownloadData(ClientConf.Query.ReadEndPoint, "DEB", DisplayObjects)
+	DebrisLoaded = true
+    }
+    else
+	DisplayObjects(ObjData)
+}
 
 function SetCesiumHome()
 {
@@ -478,6 +502,6 @@ Cesium.Transforms.preloadIcrfFixed(new Cesium.TimeInterval({
     $.get("./cliconf.json", function (json) {
 	ClientConf = JSON.parse(json)
 
-	DownloadData(ClientConf.Query.ReadEndPoint, "track\\\\d+$", DisplayObjects)
+	DownloadData(ClientConf.Query.ReadEndPoint, "NODEB", DisplayObjects)
     }, "text")
 })

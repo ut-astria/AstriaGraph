@@ -6,13 +6,26 @@ ScriptPath = path.dirname(path.abspath(__file__))
 ServConf = json.load(open(path.join(ScriptPath, "servconf.json")))
 
 def select(filter):
+    if (filter.lower() == "nodeb"):
+        f = "!"
+    else:
+        f = ""
 
-    qry = ("SELECT ?s ?p ?o "
-           "WHERE { "
-           "?sub ?pre ?o "
-           "BIND(STRAFTER(STR(?sub), \"#track\") as ?s) "
-           "BIND(STRAFTER(STR(?pre), \"_\") as ?p) "
-           "FILTER(REGEX(STR(?sub), \"%s\"))}" % filter)
+    qry = """
+    PREFIX a: <http://www.astria.com#>
+
+    SELECT ?s ?p ?o WHERE {
+    ?si ?pre ?o
+      {
+      SELECT ?si
+      WHERE {
+        ?si a:obj_name ?oi
+        FILTER(REGEX(STR(?si), "track\\\\d+") &&
+               %s(CONTAINS(?oi, "R/B") || CONTAINS(?oi, "DEB")))
+      }
+      }
+      BIND (STRAFTER(STR(?si), "#track") AS ?s)
+      BIND (STRAFTER(STR(?pre), "_") AS ?p)}""" % f
 
     req = requests.get(ServConf["SPARQL"]["ReadEndPoint"],
                        params = {"query" : qry, "output" : "csv"})

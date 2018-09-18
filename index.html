@@ -48,6 +48,10 @@
 	    <option value = "G">Geo-synchronous/stationary orbit (GSO/GEO)</option>
 	    <option value = "H">High Earth orbit (HEO)</option>
 	  </select>
+	  <p> </p>
+
+	  <input type = "checkbox" name = "DebrisToggle" id = "DebrisToggle">
+	  <label for = "DebrisToggle">Display rocket bodies and debris</label></input>
 	</fieldset>
       </div>
 
@@ -260,6 +264,11 @@
       document.getElementsByClassName("close")[0].onclick = function()
       {
       document.getElementById("DataSrcPopup").style.display = "none"
+      }
+
+      document.getElementById("DebrisToggle").onclick = function()
+      {
+      OnToggleDebris()
       }
     </script>
   </head>
