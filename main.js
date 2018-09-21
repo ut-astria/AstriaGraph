@@ -302,7 +302,8 @@ function DisplayOrbit(obj)
 		}
 
 		if (ObjData[s]["originator"] == "LeoLabs" ||
-		    ObjData[s]["originator"] == "Astria OD/LeoLabs data")
+		    ObjData[s]["originator"] == "Astria OD/LeoLabs data" ||
+		    ObjData[s]["originator"] == "Astria OD/Starbrook data")
 		{
 		    htm = htm +
 			`<tr><td>Drag coefficient</td>
