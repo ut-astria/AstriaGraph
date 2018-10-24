@@ -232,8 +232,24 @@ function DisplayOrbit(obj)
 		    <tr><th align = "center" style = "color:yellow">
 		    <strong>Data Source</strong></th>
 		    <th align = "center" style = "color:yellow">
-		    <strong>(${i}) ${ObjData[s]["originator"]}</strong></th></tr>
-		    <tr><td>Name</td>
+		    <strong>(${i}) ${ObjData[s]["originator"]}</strong></th></tr>`
+
+		if (ObjData[s]["originator"].search("Astria OD") != -1)
+		{
+		    var statlink
+		    if (ObjData[s]["originator"].search("LeoLabs") != -1)
+			statlink = "OD_stats/LeoLabs_" + ObjData[s]["id"] + ".html"
+		    else
+			statlink = "OD_stats/Starbrook_" + ObjData[s]["id"] + ".html"
+
+		    htm = htm +
+			`<tr><td colspan = "2" align = "center">
+			Click <a href = ${statlink} target = "_blank" style = "color:blue">here</a>
+			for orbit determination statistics</td></tr>`
+		}
+
+		htm = htm +
+		    `<tr><td>Name</td>
 		    <td align = "right">${ObjData[s]["name"]}</td></tr>
 		    <tr><td>Country</td>
 		    <td align = "right">${ObjData[s]["origin"]}</td></tr>`
@@ -302,8 +318,7 @@ function DisplayOrbit(obj)
 		}
 
 		if (ObjData[s]["originator"] == "LeoLabs" ||
-		    ObjData[s]["originator"] == "Astria OD/LeoLabs data" ||
-		    ObjData[s]["originator"] == "Astria OD/Starbrook data")
+		    ObjData[s]["originator"] == "Astria OD/LeoLabs data")
 		{
 		    htm = htm +
 			`<tr><td>Drag coefficient</td>
@@ -319,7 +334,8 @@ function DisplayOrbit(obj)
 			</table> <p></p>`
 		}
 		else if (ObjData[s]["originator"] != "UCS" &&
-			 ObjData[s]["originator"] != "SeeSat-L")
+			 ObjData[s]["originator"] != "SeeSat-L" &&
+			 ObjData[s]["originator"] != "Astria OD/Starbrook data")
 		{
 		    htm = htm +
 			`<tr><td>Ballistic coefficient</td>
