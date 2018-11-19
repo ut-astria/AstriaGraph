@@ -1,5 +1,0 @@
-{
-    "SPARQL": {
-	"ReadEndPoint"   : "http://localhost:3030/astria/query"
-    }
-}
