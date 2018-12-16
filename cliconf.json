@@ -1,5 +1,0 @@
-{
-    "Query": {
-	"ReadEndPoint" : "./query?filter="
-    }
-}

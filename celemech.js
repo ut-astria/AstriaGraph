@@ -30,7 +30,7 @@ function ecceanom(mean, ecc, tol, MAXITER)
         prev = curr
     }
 
-    ecan = NaN
+    return(NaN)
 }
 
 function carttoel(mu, pos, vel)
@@ -82,26 +82,26 @@ function carttoel(mu, pos, vel)
         var mean = (ehan-ecc*Math.sin(ehan)) % TwoPi
     }
 
-    return({sma : sma, ecc : ecc, inc : inc, raan : raan,
-	    argp : argp, mean : mean})
+    return({SMA : sma, Ecc : ecc, Inc : inc, RAAN : raan,
+	    ArgP : argp, MeanAnom : mean})
 }
 
 function eltocart(mu, ele, posonly = false, tol = 1E-6, MAXITER = 20)
 {
-    var ecan = ecceanom(ele.mean, ele.ecc, tol, MAXITER)
-    var tran = 2*Math.atan2(Math.sqrt((1+ele.ecc)/(1-ele.ecc))*
+    var ecan = ecceanom(ele.MeanAnom, ele.Ecc, tol, MAXITER)
+    var tran = 2*Math.atan2(Math.sqrt((1+ele.Ecc)/(1-ele.Ecc))*
 			    Math.sin(ecan/2), Math.cos(ecan/2))
 
-    var p = ele.sma*(1 - ele.ecc*ele.ecc)
-    var r = p/(1 + ele.ecc*Math.cos(tran))
+    var p = ele.SMA*(1 - ele.Ecc*ele.Ecc)
+    var r = p/(1 + ele.Ecc*Math.cos(tran))
     var h = Math.sqrt(mu*p)
 
-    var ci = Math.cos(ele.inc)
-    var si = Math.sin(ele.inc)
-    var cr = Math.cos(ele.raan)
-    var sr = Math.sin(ele.raan)
-    var cw = Math.cos(ele.argp + tran)
-    var sw = Math.sin(ele.argp + tran)
+    var ci = Math.cos(ele.Inc)
+    var si = Math.sin(ele.Inc)
+    var cr = Math.cos(ele.RAAN)
+    var sr = Math.sin(ele.RAAN)
+    var cw = Math.cos(ele.ArgP + tran)
+    var sw = Math.sin(ele.ArgP + tran)
 
     var pos = new Cesium.Cartesian3(cr*cw-sr*sw*ci, sr*cw+cr*sw*ci, si*sw)
     var pos2 = new Cesium.Cartesian3()
@@ -114,7 +114,7 @@ function eltocart(mu, ele, posonly = false, tol = 1E-6, MAXITER = 20)
     var vel2 = new Cesium.Cartesian3()
     Cesium.Cartesian3.subtract(
 	Cesium.Cartesian3.multiplyByScalar(
-	    pos2, h*ele.ecc*Math.sin(tran)/(r*p), vel1),
+	    pos2, h*ele.Ecc*Math.sin(tran)/(r*p), vel1),
 	Cesium.Cartesian3.multiplyByScalar(
 	    new Cesium.Cartesian3(cr*sw+sr*cw*ci,
 				  sr*sw-cr*cw*ci,-si*cw),h/r,vel2),vel)
