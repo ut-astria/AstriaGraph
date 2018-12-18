@@ -18,6 +18,7 @@ var SimStop = Cesium.JulianDate.addSeconds(SimStart, SimInt, new Cesium.JulianDa
 
 var DataSources = ["USSTRATCOM", "Planet", "LeoLabs", "JSC Vimpel", "SeeSat-L",
 		   "Astria OD/LeoLabs data", "Astria OD/Starbrook data", "UCS"]
+var NumFields = [0, 4, 5, 6, 7, 22, 23, 24, 25, 26, 27]
 
 function DownloadData(url, filt, OnDone)
 {
@@ -43,10 +44,16 @@ function DownloadData(url, filt, OnDone)
 	    ObjData[N+i-1]["Elem"] = {}
 	    for (j = 0; j < fields.length; j++)
 	    {
+		col = hdrs[j]
 		if (fields[j].length > 0)
 		{
-		    val = Number(fields[j])
-		    if (isNaN(val))
+		    if (NumFields.indexOf(j) != -1)
+		    {
+			val = Number(fields[j])
+			if (isNaN(val))
+			    val = fields[j]
+		    }
+		    else
 			val = fields[j]
 		}
 		else
@@ -58,7 +65,6 @@ function DownloadData(url, filt, OnDone)
 		    continue
 		}
 
-		col = hdrs[j]
 		if (col == "Epoch" || col == "SMA" || col == "Ecc" || col == "Inc" ||
 		    col == "RAAN" || col == "ArgP" || col == "MeanAnom")
 		    ObjData[N+i-1]["Elem"][col] = val
@@ -345,6 +351,8 @@ function DisplayOrbit(obj)
 		}
 
 		obj.description = obj.description + htm
+		if (ObjData[s]["DataSource"] == "UCS")
+		    break
 	    }
 	    else
 	    {
@@ -357,6 +365,12 @@ function DisplayOrbit(obj)
 		Number.isNaN(car.height))
 		continue
 	    arr.push(car.longitude, car.latitude, car.height)
+	}
+
+	if (ObjData[s]["DataSource"] == "UCS")
+	{
+	    i++
+	    continue
 	}
 
 	ent = CsView.entities.getById(s)
