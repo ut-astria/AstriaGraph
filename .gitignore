@@ -1,4 +1,3 @@
-server
 cesium
-data
-OD_stats
+data/
+server/

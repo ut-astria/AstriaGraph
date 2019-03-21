@@ -1,6 +1,6 @@
 /*
  * main.js - AstriaGraph visualization entry point.
- * Copyright (C) 2019 Shiva Iyer <shiva.iyer AT utexas DOT edu>
+ * Copyright (C) 2018-2019 University of Texas
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -452,7 +452,7 @@ function OnToggleDebris()
     var cb = window.document.getElementById("DebrisToggle")
     if (cb.checked && !DebrisLoaded)
     {
-	DownloadData("./query?filter=", "DEB", DisplayObjects)
+	DownloadData("/AstriaGraph/api/www_query?filter=", "DEB", DisplayObjects)
 	DebrisLoaded = true
     }
     else
@@ -541,5 +541,5 @@ $.get("./origins.csv", function (csv) {
 Cesium.Transforms.preloadIcrfFixed(new Cesium.TimeInterval({
     start: new Cesium.JulianDate(J2000Epoch - JulCent),
     stop: new Cesium.JulianDate(J2000Epoch + JulCent),})).then(function() {
-	DownloadData("./query?filter=", "NODEB", DisplayObjects)
+	DownloadData("/AstriaGraph/api/www_query?filter=", "NODEB", DisplayObjects)
 })

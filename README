@@ -1,43 +1,6 @@
-AstriaGraph
-Author : Shiva Iyer <shiva.iyer AT utexas DOT edu>
-
-This folder contains the source code and resources needed to run
-a local instance of AstriaGraph. The folder structure is as follows.
+This folder contains the source code for the AstriaGraph web
+interface. The folder structure is follows.
 
 .      : Browser startup page, JavaScript source code, and JQuery.
 cesium : Cesium widgets, source files, and resources.
 images : Astria logo and JQuery images.
-server : Python web server WSGI interface.
-
-The following software packages must be installed and configured.
-
-Python (v 2.7+ or 3.5+)
------------------------
-
-mod_wsgi : Use Python's pip package manager to install mod_wsgi.
---------
-
-Apache Jena - Fuseki : Download and run Fuseki from the command line.
---------------------
-Upload the Astria ontology .owl file into your Fuseki instance.
-
-Apache HTTP server : Run httpd on any available TCP port.
-------------------
-
-Add the following entries to your httpd.conf or httpd-vhosts.conf.
-Change the "/home/shiva/projects//astria" to refer to the
-folder you cloned the repository into. The LoadModule entry must
-point to the shared library that contains your mod_wsgi installation.
-
-DocumentRoot "/home/shiva/projects//astria"
-<Directory "/home/shiva/projects/astria//AstriaGraph">
-	Require all granted
-</Directory>
-
-LoadModule wsgi_module "/usr/lib64/python2.7/site-packages/mod_wsgi/server/mod_wsgi-py27.so"
-
-WSGIScriptAlias /AstriaGraph/query /home/shiva/projects/astria/AstriaGraph/server/sparql.wsgi
-
-If everything is installed and configured correctly, visit
-http://localhost:nnnn/AstriaGraph from a browser window. <nnnn> is the
-TCP port you have assigned to httpd.
