@@ -16,6 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var DataSources = []
+var NumFields = [0, 4, 5, 6, 7, 22, 23, 24, 25, 26, 27]
+var InfoFields = ["Name", "Country", "CatalogId", "NoradId", "BirthDate", "Operator", "Users",
+		  "Purpose", "DetailedPurpose", "LaunchMass", "DryMass", "Power", "Lifetime",
+		  "Contractor", "LaunchSite", "LaunchVehicle"]
+
 var ObjData = {}
 var DebrisLoaded = false
 
@@ -28,14 +34,36 @@ var SimInt = 90*60
 var SimStart = Cesium.JulianDate.now()
 var SimStop = Cesium.JulianDate.addSeconds(SimStart, SimInt, new Cesium.JulianDate())
 
-var DataSources = ["USSTRATCOM", "Planet", "LeoLabs", "JSC Vimpel", "SeeSat-L",
-		   "Astria OD/LeoLabs data", "Astria OD/Starbrook data", "UCS"]
-var NumFields = [0, 4, 5, 6, 7, 22, 23, 24, 25, 26, 27]
-
-function DownloadData(url, filt, OnDone)
+function GetDataSources()
 {
-    $.ajax({method : "GET",
-    url : url + filt,
+    $.ajax({method : "GET", url : "/AstriaGraph/api/www_data_sources",
+    success : function(resp)
+    {
+	var i, fields
+	var recs = resp.split(/\r\n|\n/)
+	var hdrs = recs[0].split(/\t/)
+
+	$("#DataSrcSelect").append($("<option>", {value : "ALL", text : "All"}))
+	for (i = 1; i < recs.length; i++)
+	{
+	    fields = recs[i].split(/\t/)
+	    if (fields.length < hdrs.length)
+		continue
+
+	    DataSources[fields[0]] = fields[1]
+	    if (fields[1] != "UCS")
+		$("#DataSrcSelect").append($("<option>", {value : fields[1], text : fields[1]}))
+	}
+
+	$("#DataSrcSelect").val("ALL")
+	$("#DataSrcSelect").selectmenu("refresh")
+	GetSpaceObjects("/AstriaGraph/api/www_query?filter=", "NODEB", DisplayObjects)
+    }})
+}
+
+function GetSpaceObjects(url, filt, OnDone)
+{
+    $.ajax({method : "GET", url : url + filt,
     success : function(resp)
     {
 	var fields, val, col, i, j
@@ -114,9 +142,8 @@ function DisplayObjects(D)
 	trk = D[s]
 	if (trk["DataSource"] == "UCS")
 	    active.push(trk["NoradId"])
-
 	if (trk["DataSource"] == "USSTRATCOM" &&
-	    (trk["BirthDate"].length > 4 && trk["BirthDate"].slice(0, 4) == "2018") &&
+	    (trk["BirthDate"].length > 4 && Number(trk["BirthDate"].slice(0, 4)) >= 2017) &&
 	    trk["Name"].search("DEB") == -1 && trk["Name"].search("R/B") == -1)
 	    active.push(trk["NoradId"])
     }
@@ -132,15 +159,20 @@ function DisplayObjects(D)
 	    (orgsel == "ALL" || orgsel == trk["Country"]) &&
 	    (regsel == "ALL" || regsel == trk["OrbitType"]))
 	{
-	    name = trk["Name"] + " (" + trk["CatalogId"] + ")"
-	    for (i = 0; i < names.length; i++)
+	    if (trk["Name"].length > 0)
 	    {
-		if (names[i].label == name)
-		    break
+		if (trk["NoradId"].length > 0)
+		    name = trk["Name"] + " (" + trk["NoradId"] + ")"
+		else
+		    name = trk["Name"] + " (" + trk["CatalogId"] + ")"
+		for (i = 0; i < names.length; i++)
+		{
+		    if (names[i].label == name)
+			break
+		}
+		if (i == names.length)
+		    names.push({label : name, value : s})
 	    }
-
-	    if (i == names.length)
-		names.push({label : name, value : s})
 
 	    if (!(typeof ent === "undefined"))
 	    {
@@ -162,8 +194,7 @@ function DisplayObjects(D)
 
 	Cesium.JulianDate.fromIso8601(trk["Elem"]["Epoch"], epjd)
 	t = Cesium.JulianDate.daysDifference(SimStart, epjd)
-
-	trk["Elem"]["mmo"] = Math.sqrt(WGS72_mu/(trk["Elem"]["SMA"]*trk["Elem"]["SMA"]*trk["Elem"]["SMA"]))
+	trk["Elem"]["mmo"] = Math.sqrt(EGM96_mu/(trk["Elem"]["SMA"]*trk["Elem"]["SMA"]*trk["Elem"]["SMA"]))
 	trk["Elem"]["MeanAnom"] = (trk["Elem"]["MeanAnom"] + trk["Elem"]["mmo"]*t*86400) % TwoPi
 
 	if (active.indexOf(trk["NoradId"]) == -1)
@@ -190,9 +221,7 @@ function DisplayObjects(D)
     }
 
     CsView.entities.resumeEvents()
-
     $("#SearchBox").autocomplete({source : names, minLength : 3})
-
     window.document.getElementById("Loader").style.display = "none"
 }
 
@@ -201,13 +230,10 @@ function UpdatePosition(CRFtoTRF, trkid)
     return(function UpdateHelper() {
 	var ele = ObjData[trkid]["Elem"]
 	var t = Cesium.JulianDate.secondsDifference(CsView.clock.currentTime, SimStart)
-
 	var u = jQuery.extend({}, ele)
 	u.MeanAnom = (u.MeanAnom + u.mmo*t) % TwoPi
-
 	var eff = new Cesium.Cartesian3()
-	var eci = eltocart(WGS72_mu, u, true, 1E-3)
-
+	var eci = eltocart(u, true, 1E-3)
 	Cesium.Matrix3.multiplyByVector(CRFtoTRF, eci, eff)
 	return(eff)
     })
@@ -229,94 +255,50 @@ function DisplayOrbit(obj)
     CsOrbitEnt = []
 
     i = 1
-    var ent, trk = ObjData[obj.id]
     for (var s in ObjData)
     {
-	if (s != obj.id && (ObjData[s]["NoradId"].length == 0 ||
-			    ObjData[s]["NoradId"] != trk["NoradId"]))
+	var same = ObjData[s]
+	if (dsnsel != "ALL" && dsnsel != same["DataSource"])
 	    continue
-	if (dsnsel != "ALL" && dsnsel != ObjData[s]["DataSource"])
+	if (s != obj.id && (same["NoradId"].length == 0 || same["NoradId"] != ObjData[obj.id]["NoradId"]))
 	    continue
 
-	var sta,arr = []
-	var ele = ObjData[s]["Elem"]
+	var sta, arr = []
+	var ele = same["Elem"]
 	var u = jQuery.extend({}, ele)
-
 	for (u.MeanAnom = 0; u.MeanAnom <= 6.29; u.MeanAnom += 0.01)
 	{
 	    if (u.MeanAnom == 0)
 	    {
-		sta = eltocart(WGS72_mu, u, false, 1E-6, 100)
+		sta = eltocart(u, false, 1E-6, 100)
 		Cesium.Matrix3.multiplyByVector(CRFtoTRF, sta.pos, Y)
 
 		var htm = `<table border : 1px solid white style = "width:100%">
 		    <tr><th align = "center" style = "color:yellow">
 		    <strong>Data Source</strong></th>
 		    <th align = "center" style = "color:yellow">
-		    <strong>(${i}) ${ObjData[s]["DataSource"]}</strong></th></tr>`
+		    <strong>(${i}) ${same["DataSource"]}</strong></th></tr>`
 
-		if (ObjData[s]["DataSource"].search("Astria OD") != -1)
+		if (same["DataSource"].search("Astria OD") != -1)
 		{
-		    var statlink
-		    if (ObjData[s]["DataSource"].search("LeoLabs") != -1)
-			statlink = "OD_stats/LeoLabs_" + ObjData[s]["NoradId"] + ".html"
-		    else
-			statlink = "OD_stats/Starbrook_" + ObjData[s]["NoradId"] + ".html"
-
-		    htm = htm +
-			`<tr><td colspan = "2" align = "center">
+		    var idx1 = same["DataSource"].indexOf("/") + 1
+		    var idx2 = same["DataSource"].lastIndexOf(" ")
+		    var statlink = "OD_stats/" + same["DataSource"].slice(idx1, idx2) +
+			"_" + same["NoradId"] + ".html"
+		    htm = htm +	`<tr><td colspan = "2" align = "center">
 			Click <a href = ${statlink} target = "_blank" style = "color:blue">here</a>
 			for orbit determination statistics</td></tr>`
 		}
 
-		htm = htm +
-		    `<tr><td>Name</td>
-		    <td align = "right">${ObjData[s]["Name"]}</td></tr>
-		    <tr><td>Country</td>
-		    <td align = "right">${ObjData[s]["Country"]}</td></tr>`
+		InfoFields.forEach (function(inf) {
+		    if (same[inf].length > 0)
+			htm = htm + `<tr><td>${inf}</td> <td align = "right">${same[inf]}</td></tr>`
+		})
 
-		if (ObjData[s]["DataSource"] == "USSTRATCOM" || ObjData[s]["DataSource"] == "SeeSat-L")
+		if (same["DataSource"] != "UCS")
 		{
-		    htm = htm +
-			`<tr><td>Object ID</td>
-			<td align = "right">${ObjData[s]["NoradId"]}</td></tr>
-			<tr><td>Launch date</td>
-			<td align = "right">${ObjData[s]["BirthDate"]}</td></tr>`
-		}
-
-		if (ObjData[s]["DataSource"] == "UCS")
-		{
-		    htm = htm +
-			`<tr><td>Operator</td>
-			<td align = "right">${ObjData[s]["Operator"]}</td></tr>
-			<tr><td>Users</td>
-			<td align = "right">${ObjData[s]["Users"]}</td></tr>
-			<tr><td>Purpose</td>
-			<td align = "right">${ObjData[s]["Purpose"]}</td></tr>
-			<tr><td>Detailed purpose</td>
-			<td align = "right">${ObjData[s]["DetailedPurpose"]}</td></tr>
-		    	<tr><td>Launch mass [kg]</td>
-		    	<td align = "right">${ObjData[s]["LaunchMass"]}</td></tr>
-		    	<tr><td>Dry mass [kg]</td>
-		    	<td align = "right">${ObjData[s]["DryMass"]}</td></tr>
-		    	<tr><td>Power [W]</td>
-		    	<td align = "right">${ObjData[s]["Power"]}</td></tr>
-		    	<tr><td>Lifetime [years]</td>
-		    	<td align = "right">${ObjData[s]["Lifetime"]}</td></tr>
-			<tr><td>Contractor</td>
-			<td align = "right">${ObjData[s]["Contractor"]}</td></tr>
-			<tr><td>Launch site</td>
-			<td align = "right">${ObjData[s]["LaunchSite"]}</td></tr>
-			<tr><td>Launch vehicle</td>
-			<td align = "right">${ObjData[s]["LaunchVehicle"]}</td></tr>
-			<tr><td>Launch date</td>
-			<td align = "right">${ObjData[s]["BirthDate"]}</td></tr>`
-		}
-		else
-		{
-			htm = htm +
-			`<tr><td>Data epoch</td>
-		    	<td align = "right">${ObjData[s]["Elem"]["Epoch"].substring(0, 24)}</td></tr>
+			htm = htm + `<tr><td>Data epoch</td>
+		    	<td align = "right">${same["Elem"]["Epoch"].substring(0, 24)}</td></tr>
 		    	<tr><td>Semi-major axis</td>
 		    	<td align = "right">${(ele.SMA/1000).toFixed(1)} km</td></tr>
 		    	<tr><td>Eccentricity</td>
@@ -337,61 +319,55 @@ function DisplayOrbit(obj)
 		    	<td align = "right">${(Math.PI/(ele.mmo*30)).toFixed(1)} min</td></tr>`
 		}
 
-		if (ObjData[s]["DataSource"] == "LeoLabs" || ObjData[s]["DataSource"] == "Astria OD/LeoLabs data")
+		if (typeof(same["DragCoeff"]) === "number")
 		{
-		    htm = htm +
-			`<tr><td>Drag coefficient</td>
-			<td align = "right">${(ObjData[s]["DragCoeff"]).toFixed(4)}</td></tr>
+		    htm = htm +	`<tr><td>Drag coefficient</td>
+			<td align = "right">${(same["DragCoeff"]).toFixed(4)}</td></tr>
 			</table> <p></p>`
 		}
-		else if (ObjData[s]["DataSource"] == "JSC Vimpel")
+		if (typeof(same["BallCoeff"]) === "number")
 		{
-		    htm = htm +
-			`<tr><td>Area to mass ratio</td>
-			<td align = "right">${(ObjData[s]["AreaToMass"]).toFixed(4)}
-			<sup>m&sup2;</sup>&frasl;<sub>kg</sub></td></tr>
-			</table> <p></p>`
-		}
-		else if (ObjData[s]["DataSource"] != "UCS" && ObjData[s]["DataSource"] != "SeeSat-L" &&
-			 ObjData[s]["DataSource"] != "Astria OD/Starbrook data")
-		{
-		    htm = htm +
-			`<tr><td>Ballistic coefficient</td>
-			<td align = "right">${(ObjData[s]["BallCoeff"]*1E4).toFixed(2)}
+		    htm = htm +	`<tr><td>Ballistic coefficient</td>
+			<td align = "right">${(same["BallCoeff"]*1E4).toFixed(2)}
 			<sup>cm&sup2;</sup>&frasl;<sub>kg</sub></td></tr>
+			</table> <p></p>`
+		}
+		if (typeof(same["AreaToMass"]) === "number")
+		{
+		    htm = htm +	`<tr><td>Area to mass ratio</td>
+			<td align = "right">${(same["AreaToMass"]).toFixed(4)}
+			<sup>m&sup2;</sup>&frasl;<sub>kg</sub></td></tr>
 			</table> <p></p>`
 		}
 
 		obj.description = obj.description + htm
-		if (ObjData[s]["DataSource"] == "UCS")
+		if (same["DataSource"] == "UCS")
 		    break
 	    }
 	    else
 	    {
-		sta = eltocart(WGS72_mu, u, true, 1E-6, 100)
+		sta = eltocart(u, true, 1E-6, 100)
 		Cesium.Matrix3.multiplyByVector(CRFtoTRF, sta, Y)
 	    }
 
 	    CsView.scene.mapProjection.ellipsoid.cartesianToCartographic(Y, car)
-	    if (Number.isNaN(car.longitude) || Number.isNaN(car.latitude) ||
-		Number.isNaN(car.height))
+	    if (Number.isNaN(car.longitude) || Number.isNaN(car.latitude) || Number.isNaN(car.height))
 		continue
 	    arr.push(car.longitude, car.latitude, car.height)
 	}
 
-	if (ObjData[s]["DataSource"] == "UCS")
+	if (same["DataSource"] == "UCS")
 	{
 	    i++
 	    continue
 	}
 
-	ent = CsView.entities.getById(s)
+	var ent = CsView.entities.getById(s)
 	ent.polyline = {
 	    positions : Cesium.Cartesian3.fromRadiansArrayHeights(arr),
 	    width : 1,
 	    material : ent.point.color.getValue()
 	}
-
 	ent.label = {text : `(${i})`,
 		     font : "bold 14pt monospace",
 		     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
@@ -452,7 +428,7 @@ function OnToggleDebris()
     var cb = window.document.getElementById("DebrisToggle")
     if (cb.checked && !DebrisLoaded)
     {
-	DownloadData("/AstriaGraph/api/www_query?filter=", "DEB", DisplayObjects)
+	GetSpaceObjects("/AstriaGraph/api/www_query?filter=", "DEB", DisplayObjects)
 	DebrisLoaded = true
     }
     else
@@ -541,5 +517,5 @@ $.get("./origins.csv", function (csv) {
 Cesium.Transforms.preloadIcrfFixed(new Cesium.TimeInterval({
     start: new Cesium.JulianDate(J2000Epoch - JulCent),
     stop: new Cesium.JulianDate(J2000Epoch + JulCent),})).then(function() {
-	DownloadData("/AstriaGraph/api/www_query?filter=", "NODEB", DisplayObjects)
+	GetDataSources()
 })
